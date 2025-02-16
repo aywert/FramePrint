@@ -12,20 +12,10 @@ org 100h
 
 
 start:   
-        mov ax, 0
-        mov bx, 0
-        mov cx, 0
-        mov dx, 0
-        mov bp, 0
-        mov di, 0
-        ;mov si, 0
-;-----------------------------------------------------
         mov si, offset StyleStr
         mov bx, 0b800h
         mov es, bx
         call CntStartPosition
-        ;mov di, 0
-        ;mov di, (Begin_Y-1)*80*2 + (Begin_X-1)*2 
         mov ah, Color_style
         
         call DrawFrame
@@ -92,7 +82,7 @@ DrawFrame proc
         mov al, ds:[si]
         mov bp, offset Len
         mov bx, 0
-        mov bx, [bp] ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+        mov bx, [bp] 
         sub bx, 2 
         
         mov cx, bx ; mov cx, Len-2                
@@ -106,7 +96,7 @@ DrawFrame proc
         pop cx
         mov bp, offset Len
         mov bx, 0
-        mov bx, [bp] ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        mov bx, [bp]
         shl bx, 1
         mov dx, 160
         sub dx, bx
@@ -162,15 +152,13 @@ DrawFrame proc
 ;(Begin_Y-1)*80*2 + (Begin_X-1)*2
         mov bp, offset Begin_Y
         mov ax, 0
-        mov ax, [bp] 
-        ;mov ax, [offset Begin_Y]
+        mov ax, [bp]    ;mov ax, [offset Begin_Y]
         dec ax
         mov bx, 160
         mul bx
         mov bp, offset Begin_X
         mov bx, 0
-        mov bx, [bp]
-        ;mov bx, [offset Begin_X]
+        mov bx, [bp]    ;mov bx, [offset Begin_X]
         dec bx
         shl bx, 1
         add ax, bx
@@ -184,8 +172,8 @@ DrawFrame proc
 ;Exit: DI - result of operation
 ;Destr: AX BX
 ;---------------------------------------------------------------
-        CntStringPosition proc
-;(Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
+        CntStringPosition proc ;(Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
+        ;(
         mov bp, offset Begin_Y
         mov ax, 0
         mov ax, [bp] 
@@ -197,8 +185,10 @@ DrawFrame proc
         add ax, bx
         mov bx, 160
         mul bx
-        mov di, ax
-
+        mov di, ax\
+        ;)
+        ;+
+        ;(
         mov bp, offset Begin_X
         mov ax, 0
         mov ax, [bp]
@@ -210,6 +200,7 @@ DrawFrame proc
         add ax, bx
         shl ax, 1
         add di, ax
+        ;)
         ret
         endp
 
