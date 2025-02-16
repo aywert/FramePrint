@@ -2,31 +2,37 @@
 .code
 org 100h
 
-Begin_X    = 10
-Begin_Y    = 10
-Height     = 5
-Len        = 36
-Left_up    = 0c9h
-Midle      = 0cdh
-Colum      = 0bah
-Right_up   = 0bbh
-Left_down  = 0c8h
-Right_down = 0bch
-Color_style = 01011010b
+
+;Left_up    db 0c9h
+;Midle      db 0cdh
+;Colum      db 0bah
+;Right_up   db 0bbh
+;Left_down  db 0c8h
+;Right_down db 0bch
+
 
 start:   
+        mov ax, 0
+        mov bx, 0
+        mov cx, 0
+        mov dx, 0
+        mov bp, 0
+        mov di, 0
+        ;mov si, 0
+;-----------------------------------------------------
         mov si, offset StyleStr
         mov bx, 0b800h
         mov es, bx
-        mov di, (Begin_Y-1)*80*2 + (Begin_X-1)*2 
+        call CntStartPosition
+        ;mov di, 0
+        ;mov di, (Begin_Y-1)*80*2 + (Begin_X-1)*2 
         mov ah, Color_style
         
         call DrawFrame
 
         mov ax, 4c00h
         int 21h
-String db 'Hello, World]$'
-StyleStr db '+-+&!&(#)$'
+
 
 
 ;---------------------------------------------------------------
@@ -36,19 +42,24 @@ StyleStr db '+-+&!&(#)$'
 ;       DI - position of the beggining of the frame
 ;       AH - color attributes
 ;Exit:  None
-;Destr: CX SI DI AX 
+;Destr: CX SI DI AX BX
 ;---------------------------------------------------------------
 DrawFrame proc 
         call DrawStr
-        mov cx, Height-2
+        mov bp, offset Height
+        mov bx, 0
+        mov bx, [bp]
+        sub bx, 2
+        mov cx, bx
         Cycle:
                 call DrawStr
                 sub si, 3
         loop Cycle
         add si, 3
         call DrawStr
-        
-        mov di, (Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
+
+        call CntStringPosition
+                                                ;mov di, (Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
         call CntLenString 
 
         push ax
@@ -79,7 +90,12 @@ DrawFrame proc
         stosw                           ;печатаю первый символ 3 байтовой последовательности 
         
         mov al, ds:[si]
-        mov cx, Len - 2                 
+        mov bp, offset Len
+        mov bx, 0
+        mov bx, [bp] ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+        sub bx, 2 
+        
+        mov cx, bx ; mov cx, Len-2                
         rep stosw                       ;печатаю последовательность из второго символа len-2 раза
         
         inc si
@@ -88,7 +104,13 @@ DrawFrame proc
         stosw                           ;печатаю последний символ 3 байтовой последовательности
         
         pop cx
-        add di, 160 - 2*Len
+        mov bp, offset Len
+        mov bx, 0
+        mov bx, [bp] ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        shl bx, 1
+        mov dx, 160
+        sub dx, bx
+        add di, dx ;add di, 160 - 2*Len
         ret 
         endp
 
@@ -129,4 +151,74 @@ DrawFrame proc
         loop metkaCLS
         ret 
         endp
+
+;---------------------------------------------------------------
+;CntStartPosition - counts the position where to start frame
+;Enter: 
+;Exit: DI - result of operation
+;Destr: AX BX DI
+;---------------------------------------------------------------
+        CntStartPosition proc
+;(Begin_Y-1)*80*2 + (Begin_X-1)*2
+        mov bp, offset Begin_Y
+        mov ax, 0
+        mov ax, [bp] 
+        ;mov ax, [offset Begin_Y]
+        dec ax
+        mov bx, 160
+        mul bx
+        mov bp, offset Begin_X
+        mov bx, 0
+        mov bx, [bp]
+        ;mov bx, [offset Begin_X]
+        dec bx
+        shl bx, 1
+        add ax, bx
+        mov di, ax
+        ret
+        endp
+
+;---------------------------------------------------------------
+;CntStartPosition - counts the position where to start frame
+;Enter: 
+;Exit: DI - result of operation
+;Destr: AX BX
+;---------------------------------------------------------------
+        CntStringPosition proc
+;(Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
+        mov bp, offset Begin_Y
+        mov ax, 0
+        mov ax, [bp] 
+        dec ax
+        mov bp, offset Height
+        mov bx, 0
+        mov bx, [bp]
+        shr bx, 1
+        add ax, bx
+        mov bx, 160
+        mul bx
+        mov di, ax
+
+        mov bp, offset Begin_X
+        mov ax, 0
+        mov ax, [bp]
+        dec ax
+        mov bp, offset Len
+        mov bx, 0
+        mov bx, [bp]
+        shr bx, 1
+        add ax, bx
+        shl ax, 1
+        add di, ax
+        ret
+        endp
+
+String db 'Hello, World@$'
+StyleStr db '+-+&!&(#)$'
+Color_style db 01011010b
+Begin_X    dw 16
+Begin_Y    dw 5
+Height     dw 7
+Len        dw 26
+
 end start
