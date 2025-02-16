@@ -5,25 +5,28 @@ org 100h
 Begin_X    = 10
 Begin_Y    = 10
 Height     = 10
-Len        = 28
+Len        = 3
 Left_up    = 0c9h
 Midle      = 0cdh
 Colum      = 0bah
 Right_up   = 0bbh
 Left_down  = 0c8h
 Right_down = 0bch
+Color_style = 11011010b
 
 start:   
-        mov ah, 02h
-        mov bx, offset string
-        mov dx, [bx]
-        int 21h
-        call DrawFrame
+        mov si, offset StyleStr
+        mov bx, 0b800h
+        mov es, bx
+        mov di, 0
+        mov ah, Color_style
+        ;call DrawFrame
+        call DrawStr
 
         mov ax, 4c00h
         int 21h
-string db 'Hello, world!$'
-StyleString db '+-+&!&(#)$'
+String db 'Hello, world!$'
+StyleStr db '+-+&!&(#)$'
 
 
 ;---------------------------------------------------------------
@@ -37,7 +40,7 @@ StyleString db '+-+&!&(#)$'
         mov es, bx          ; put adress of video mem in register es
 
         mov al, Left_up
-        mov ah, 11011010b
+        mov ah, Color_style
         mov di, (Begin_Y-1)*80*2 + (Begin_X-1)*2 ; Num_Of_String * 80 * 2 + Num_Of_Position * 2
         stosw               ; mov es:[di], ax / inc di
         
@@ -49,7 +52,7 @@ StyleString db '+-+&!&(#)$'
         stosw
 
         mov al, Colum
-        mov ah, 11011010b
+        mov ah, Color_style
         call DrawCol
 
         mov al, Right_down
@@ -57,7 +60,7 @@ StyleString db '+-+&!&(#)$'
 
         mov di, (Begin_Y-1)*80*2 + Begin_X*2
         mov al, Colum
-        mov ah, 11011010b; no need to reclaim
+        mov ah, Color_style; no need to reclaim
         call DrawCol
 
         mov al, Left_down
@@ -84,19 +87,27 @@ StyleString db '+-+&!&(#)$'
 ;Entry: AL = char to write
 ;       AH = color attributes
 ;Exit:  None
-;Destr: BX CX
+;Destr: CX DI AX
 ;---------------------------------------------------------------
-        DrawStr proc                        ; Creating a label on func (initialization of func) 
-        mov cx, Len - 2;
-        
-        rep stosw
+        DrawStr proc             
+        mov al, ds:[si]
+        stosw                           ;печатаю первый символ 3 байтовой последовательности 
+        inc si
+        mov al, ds:[si]
+        mov cx, Len - 2                 
+        rep stosw                       ;печатаю последовательность из второго символа len-2 раза
+        mov al, ds:[si]
+        inc si
+        mov al, ds:[si]
+        stosw
+        inc si
         ret 
         endp
 ;---------------------------------------------------------------
 ;draw a column in video memory
 ;Entry: AL = char to write
 ;       AH = color attributes
-;Exit:  None
+;Exit:  None0
 ;Destr: DI CX
 ;---------------------------------------------------------------
         DrawCol proc  
@@ -117,7 +128,7 @@ StyleString db '+-+&!&(#)$'
 ;Destr: AX BX CX DI
 ;---------------------------------------------------------------
         DrawRdmString proc  
-        mov bx, offset string
+        mov bx, offset String
         mov cx, 0
     metkaRS:
         mov ax, [bx]
@@ -142,7 +153,7 @@ StyleString db '+-+&!&(#)$'
 ;Destr: AX BX CX
 ;---------------------------------------------------------------
         CntLenString proc  
-        mov bx, offset string
+        mov bx, offset String
         mov cx, 0
         mov ax, -1
     metkaCLS:
