@@ -9,9 +9,16 @@ org 100h
 ;Right_up   db 0bbh
 ;Left_down  db 0c8h
 ;Right_down db 0bch
-
+AdCmd = 82h
 
 start:   
+        mov si, AdCmd
+        call GetDigit
+        mov Height, ax
+        call GetDigit
+        mov Len, ax
+
+        ;mov ax, ds:[AdCmd] 
         mov si, offset StyleStr
         mov bx, 0b800h
         mov es, bx
@@ -185,7 +192,7 @@ DrawFrame proc
         add ax, bx
         mov bx, 160
         mul bx
-        mov di, ax\
+        mov di, ax
         ;)
         ;+
         ;(
@@ -203,6 +210,39 @@ DrawFrame proc
         ;)
         ret
         endp
+
+;-----------------------------------------------------------------------
+;GetDigit - gets a number from command string
+;Enter: SI - relative address from where to find the number
+;Exit:  AX - number
+;Destr: AX BX CX DX
+;-----------------------------------------------------------------------
+        GetDigit proc
+        ;mov si, AdrCmd
+        ;mov ax, 0
+        mov cx, 2
+        metkaGD:
+                mov bl, ds:[si]
+                cmp bl, 20h
+                je ENDNUM
+                cmp bl, 39h
+                ja ENDNUM
+                cmp bl, 30h
+                jb ENDNUM
+                
+                sub bl, 30h
+                mov dx, 10
+                mul dx
+                add al, bl
+                inc si
+                inc cx
+                loop metkaGD
+        ENDNUM:
+
+        ret
+        endp
+        
+                
 
 String db 'Hello, World@$'
 StyleStr db '+-+&!&(#)$'
