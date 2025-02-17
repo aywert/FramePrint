@@ -2,13 +2,6 @@
 .code
 org 100h
 
-
-;Left_up    db 0c9h
-;Midle      db 0cdh
-;Colum      db 0bah
-;Right_up   db 0bbh
-;Left_down  db 0c8h
-;Right_down db 0bch
 AdCmd = 82h
 
 start:   
@@ -26,7 +19,9 @@ start:
         ;Mov String, 
         call GetDigit
         cmp ax, 0h
+        
         je StlStrInCmd
+        mov Regym, si
         mov si, offset StyleStr ;mov si, offset StyleStr
         StlStrInCmd:  
                   
@@ -67,9 +62,12 @@ DrawFrame proc
 
         call CntStringPosition
                                                 ;mov di, (Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
-        ;mov si, offset String
+        cmp Regym, 0h
+        je StlStrFromMem 
+                mov si, Regym
+        StlStrFromMem: 
+        inc si
         call CntLenString 
-
         push ax                                 ;AX = length
         shr ax, 1
         shl ax, 1
@@ -265,5 +263,6 @@ Begin_X    dw 16
 Begin_Y    dw 5
 Height     dw 7
 Len        dw 26
+Regym      dw 0
 
 end start
