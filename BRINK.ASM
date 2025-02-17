@@ -13,18 +13,23 @@ AdCmd = 82h
 
 start:   
         mov si, AdCmd
-        mov ax, 0
+        
         call GetDigit
-        mov Height, ax
-        mov ax, 0
-        call GetDigit
-        mov Len, ax
-        mov ax, 0
-        call GetDigit
-        mov Color_style, al
+        mov Height, ax          ;Put height of the string in variable Height  
 
-        ;mov ax, ds:[AdCmd] 
-        mov si, offset StyleStr
+        call GetDigit
+        mov Len, ax             ;Put length of the string in variable Len   
+        
+        call GetDigit
+        mov Color_style, al     ;Put color attributes in variable Color_style
+
+        ;Mov String, 
+        call GetDigit
+        cmp ax, 0h
+        je StlStrInCmd
+        mov si, offset StyleStr ;mov si, offset StyleStr
+        StlStrInCmd:  
+                  
         mov bx, 0b800h
         mov es, bx
         call CntStartPosition
@@ -62,15 +67,17 @@ DrawFrame proc
 
         call CntStringPosition
                                                 ;mov di, (Begin_Y + Height/2 - 1)*80*2 + 2*(Begin_X + Len/2 - 1)
+        ;mov si, offset String
         call CntLenString 
 
-        push ax
+        push ax                                 ;AX = length
         shr ax, 1
         shl ax, 1
-        sub di, ax 
+        sub di, ax                              ;shifting DX on length/2
         
         pop ax
          
+        ;mov si, offset String
         call DrawRdmString
 
         ret 
@@ -119,17 +126,18 @@ DrawFrame proc
 ;---------------------------------------------------------------
 ;DrawRdmString - draws a given string in video memory
 ;Entry: AX - length of the string
+;       SI - relative address of the string
 ;Exit:  None
-;Destr: BX AX CX 
+;Destr: SI AX CX 
 ;---------------------------------------------------------------
         DrawRdmString proc  
-        mov bx, offset String
+        
         mov cx, ax
     metkaRS:
-        mov ax, [bx]
+        mov ax, [si]
         mov ah, Color_style
         stosw
-        inc bx
+        inc si
         loop metkaRS
         ret 
         endp
@@ -140,17 +148,18 @@ DrawFrame proc
 ;Exit:  None
 ;Destr: AX BX CX
 ;---------------------------------------------------------------
-        CntLenString proc  
-        mov bx, offset String
+        CntLenString proc
+        push si
         mov cx, 0
         mov ax, -1
     metkaCLS:
-        mov cx, [bx]
+        mov cx, [si]
         sub cl, 35
         mov ch, 0
-        inc bx
+        inc si
         inc ax
         loop metkaCLS
+        pop si
         ret 
         endp
 
@@ -224,7 +233,7 @@ DrawFrame proc
 ;-----------------------------------------------------------------------
         GetDigit proc
         ;mov si, AdrCmd
-        ;mov ax, 0
+        mov ax, 0
         mov cx, 2
         metkaGD:
                 mov bl, ds:[si]
