@@ -13,10 +13,15 @@ AdCmd = 82h
 
 start:   
         mov si, AdCmd
+        mov ax, 0
         call GetDigit
         mov Height, ax
+        mov ax, 0
         call GetDigit
         mov Len, ax
+        mov ax, 0
+        call GetDigit
+        mov Color_style, al
 
         ;mov ax, ds:[AdCmd] 
         mov si, offset StyleStr
@@ -122,7 +127,7 @@ DrawFrame proc
         mov cx, ax
     metkaRS:
         mov ax, [bx]
-        mov ah, color_style
+        mov ah, Color_style
         stosw
         inc bx
         loop metkaRS
@@ -238,7 +243,7 @@ DrawFrame proc
                 inc cx
                 loop metkaGD
         ENDNUM:
-
+        inc si
         ret
         endp
         
